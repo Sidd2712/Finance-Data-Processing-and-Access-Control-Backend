@@ -1,16 +1,21 @@
 from sqlmodel import create_engine, Session, SQLModel
-from .core.config import settings
-from app.models.user import User
-from app.models.record import FinancialRecord
+from app.core.config import settings
 
-# We'll define settings in the next step
+# Use the pooled connection string from Neon
 engine = create_engine(
-    settings.DATABASE_URL, 
-    connect_args={"check_same_thread": False} # Needed for SQLite
+    settings.DATABASE_URL,
+    pool_pre_ping=True,      
+    pool_recycle=300,       
+    connect_args={"sslmode": "require"}
 )
 
 def init_db():
-    SQLModel.metadata.create_all(engine)
+    try:
+        print("Checking cloud database connection...")
+        SQLModel.metadata.create_all(engine)
+        print("Neon Tables Synchronized!")
+    except Exception as e:
+        print(f"Error connecting to Neon: {e}")
 
 def get_session():
     with Session(engine) as session:

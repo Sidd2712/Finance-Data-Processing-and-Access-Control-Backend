@@ -24,9 +24,25 @@ def create_record(
 @router.get("/", response_model=List[RecordRead])
 def read_records(
     session: Session = Depends(get_session),
-    current_user: User = Depends(RoleChecker([UserRole.ADMIN, UserRole.ANALYST]))
+    current_user: User = Depends(RoleChecker([UserRole.ADMIN, UserRole.ANALYST])),
+    type: Optional[str] = Query(None, pattern="^(income|expense)$"),
+    category: Optional[str] = None,
+    search: Optional[str] = None,
+    offset: int = 0,
+    limit: int = Query(default=100, le=100) # 'le=100' means less than or equal to 100
 ):
-    return get_financial_records(session)
+    """
+    Fetch records with support for filtering, searching, and pagination.
+    Available to: ADMIN, ANALYST
+    """
+    return get_financial_records(
+        session, 
+        type=type, 
+        category=category, 
+        search=search, 
+        offset=offset, 
+        limit=limit
+    )
 
 # Only ADMIN can delete
 @router.delete("/{record_id}")
@@ -37,5 +53,9 @@ def remove_record(
 ):
     record = delete_financial_record(session, record_id)
     if not record:
-        raise HTTPException(status_code=404, detail="Record not found")
-    return {"message": "Record deleted successfully"}
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Financial record with ID {record_id} was not found."
+        )
+    
+    return {"status": "success", "message": "Record successfully removed"}

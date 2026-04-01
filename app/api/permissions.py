@@ -1,22 +1,34 @@
-from fastapi import Header, HTTPException, Depends
+from fastapi import Header, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+from app.core.config import settings
 from sqlmodel import Session
 from uuid import UUID
 from app.database import get_session
 from app.models.user import User, UserRole
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
 def get_current_user(
-    x_user_id: UUID = Header(...), 
+    token: str = Depends(oauth2_scheme), 
     session: Session = Depends(get_session)
 ) -> User:
-    """
-    Dependency to fetch the user from the database based on a Header ID.
-    In a real app, this would decode a JWT token.
-    """
-    user = session.get(User, x_user_id)
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+        
+    user = session.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise credentials_exception
     return user
 
 class RoleChecker:
