@@ -4,6 +4,8 @@
 
 This is a robust backend system designed for corporate financial management. Unlike a personal expense tracker, this system implements a **Shared Organizational Data Model**. It allows multiple users with varying roles (Admin, Analyst, Viewer) to interact with a centralized pool of financial records while maintaining strict access control and data integrity.
 
+Demo Video Url - https://drive.google.com/file/d/1gEzeKBo5jlWE1WHU8UqV179bGS62Duxb/view?usp=sharing
+
 * * * * *
 
 ## Tech Stack
