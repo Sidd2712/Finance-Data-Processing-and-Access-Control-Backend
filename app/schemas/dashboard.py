@@ -1,7 +1,6 @@
 from pydantic import BaseModel, computed_field
-from typing import List, Dict, Any
+from typing import List
 from app.schemas.record import RecordRead
-from app.schemas.dashboard import CategoryTotal, MonthlyTrend
 
 
 class CategoryTotal(BaseModel):
