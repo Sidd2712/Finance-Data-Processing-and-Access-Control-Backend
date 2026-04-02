@@ -13,7 +13,4 @@ def read_dashboard_summary(
     session: Session = Depends(get_session),
     current_user: User = Depends(RoleChecker([UserRole.ADMIN, UserRole.ANALYST, UserRole.VIEWER]))
 ):
-    """
-    Returns aggregated financial data for the main dashboard view.
-    """
     return get_dashboard_data(session)

@@ -6,7 +6,7 @@ from app.schemas.record import RecordCreate
 def create_financial_record(session: Session, record_in: RecordCreate, user_id: int):
     db_record = FinancialRecord(
         **record_in.model_dump(), 
-        user_id=user_id  # We link the record to the user who created it
+        user_id=user_id
     )
     session.add(db_record)
     session.commit()

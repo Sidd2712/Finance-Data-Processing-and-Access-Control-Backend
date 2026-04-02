@@ -1,7 +1,6 @@
 from sqlmodel import create_engine, Session, SQLModel
 from app.core.config import settings
 
-# Use the pooled connection string from Neon
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,      

@@ -1,14 +1,43 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import Session
+from sqlmodel import Session, select
 from typing import List, Optional
 from app.database import get_session
-from app.crud.record import create_financial_record, get_financial_records, delete_financial_record
-from app.schemas.record import RecordCreate, RecordRead
+from app.crud.record import create_financial_record, get_financial_records, delete_financial_record, FinancialRecord
+from app.schemas.record import RecordCreate, RecordRead, RecordUpdate
 from app.api.permissions import RoleChecker, get_current_user
 from app.models.user import UserRole, User
 from uuid import UUID
+from datetime import datetime
 
 router = APIRouter()
+
+@router.get("/", response_model=list[RecordRead])
+def read_records(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    category: Optional[str] = None,
+    record_type: Optional[str] = None, # 'income' or 'expense'
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    offset: int = 0,
+    limit: int = 100
+):
+    statement = select(FinancialRecord).where(FinancialRecord.user_id == current_user.id)
+    
+    # Apply Dynamic Filters
+    if category:
+        statement = statement.where(FinancialRecord.category == category)
+    if record_type:
+        statement = statement.where(FinancialRecord.type == record_type)
+    if start_date:
+        statement = statement.where(FinancialRecord.date >= start_date)
+    if end_date:
+        statement = statement.where(FinancialRecord.date <= end_date)
+        
+    # Add Pagination (Requirement 6 Enhancement)
+    statement = statement.offset(offset).limit(limit)
+    
+    return session.exec(statement).all()
 
 @router.post("/", response_model=RecordRead)
 def create_record(
@@ -59,3 +88,25 @@ def remove_record(
         )
     
     return {"status": "success", "message": "Record successfully removed"}
+
+
+@router.patch("/{record_id}", response_model=RecordRead)
+def update_record(
+    record_id: UUID,
+    record_in: RecordUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(RoleChecker([UserRole.ADMIN])) # Only Admin can update
+):
+    db_record = session.get(FinancialRecord, record_id)
+    if not db_record:
+        raise HTTPException(status_code=404, detail="Record not found")
+        
+    # Update only the fields provided in the request
+    update_data = record_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_record, key, value)
+        
+    session.add(db_record)
+    session.commit()
+    session.refresh(db_record)
+    return db_record

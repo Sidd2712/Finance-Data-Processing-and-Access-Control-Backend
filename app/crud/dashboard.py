@@ -1,30 +1,27 @@
-from sqlmodel import Session, select, func
+from sqlalchemy import text
+from sqlmodel import Session, select, desc
 from app.models.record import FinancialRecord
-from app.schemas.dashboard import DashboardSummary, CategoryTotal
 
-def get_dashboard_data(session: Session) -> DashboardSummary:
-    # 1. Calculate Total Income
-    income_stmt = select(func.sum(FinancialRecord.amount)).where(FinancialRecord.type == "income")
-    total_income = session.exec(income_stmt).first() or 0.0
+def get_recent_activity(session: Session, limit: int = 5):
+    statement = select(FinancialRecord).order_code(desc(FinancialRecord.date)).limit(limit)
+    return session.exec(statement).all()
 
-    # 2. Calculate Total Expenses
-    expense_stmt = select(func.sum(FinancialRecord.amount)).where(FinancialRecord.type == "expense")
-    total_expenses = session.exec(expense_stmt).first() or 0.0
-
-    # 3. Calculate Category-wise totals
-    category_stmt = (
-        select(FinancialRecord.category, func.sum(FinancialRecord.amount))
-        .group_by(FinancialRecord.category)
-    )
-    category_results = session.exec(category_stmt).all()
+def get_monthly_trends(session: Session):
+    query = text("""
+        SELECT 
+            TO_CHAR(date, 'YYYY-MM') as month,
+            type,
+            SUM(amount) as total
+        FROM financialrecord
+        GROUP BY month, type
+        ORDER BY month ASC
+        LIMIT 12
+    """)
+    result = session.execute(query).all()
     
-    category_totals = [
-        CategoryTotal(category=row[0], total=row[1]) for row in category_results
-    ]
-
-    return DashboardSummary(
-        total_income=total_income,
-        total_expenses=total_expenses,
-        net_balance=total_income - total_expenses,
-        category_totals=category_totals
-    )
+    trends = {}
+    for month, r_type, total in result:
+        if month not in trends:
+            trends[month] = {"income": 0, "expense": 0}
+        trends[month][r_type] = total
+    return trends
