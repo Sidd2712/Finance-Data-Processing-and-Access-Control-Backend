@@ -44,3 +44,9 @@ def update_user_status(
     session.commit()
     session.refresh(db_user)
     return db_user
+
+@router.get("/me", response_model=UserRead)
+def get_current_user_info(
+    current_user: User = Depends(get_current_user)
+):
+    return current_user

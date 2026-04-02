@@ -9,7 +9,7 @@ This is a robust backend system designed for corporate financial management. Unl
 ## Tech Stack
 -------------
 
--   **Language:** Python 3.13
+-   **Language:** Python
 
 -   **Framework:** FastAPI (Asynchronous, High-Performance)
 
@@ -49,17 +49,28 @@ The Dashboard API (`/api/v1/dashboard/`) performs real-time aggregations:
 
 -   **Recent Activity:** Displays the latest 5 transactions across the entire organization.
 
+-   **Deficit Detection:** Logic handles negative balances (expenses > income) gracefully for financial reporting.
+
 ### **2\. Data Integrity & Validation**
 
 -   **Input Guards:** Pydantic models ensure `amount > 0` and enforce valid categories/types.
 
 -   **User Status:** Accounts can be toggled between `Active` and `Inactive`. Inactive users are instantly barred from logging in, even with valid credentials.
 
+
 ### **3\. Scalable Record Management**
 
--   **Offset-based Pagination:** Supports efficient retrieval of large datasets using `limit` and `offset`.
 
--   **Search & Filter:** Advanced filtering by category, transaction type, and keyword search in descriptions.
+-  **Temporal Filtering:** Supports precise data retrieval through `start_date` and `end_date` query parameters.
+
+-  **Fuzzy Search:** Case-insensitive `ilike` searching across descriptions and categories to ensure a robust user experience.
+
+-  **Offset-based Pagination:** Prevents memory overflow by chunking large datasets (default 100 per page).
+
+
+### **4\. User Convenience**
+-  **Identity Discovery:** A dedicated `/api/v1/users/me` endpoint allows the frontend to instantly hydrate user profile data (username, role, status) upon successful authentication.
+
 
 * * * * *
 
