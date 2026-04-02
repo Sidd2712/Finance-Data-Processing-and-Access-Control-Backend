@@ -1,5 +1,4 @@
 # Organizational Finance Dashboard & RBAC System
-=================================================
 
 ### **Project Overview**
 
@@ -8,7 +7,6 @@ This is a robust backend system designed for corporate financial management. Unl
 * * * * *
 
 ## Tech Stack
--------------
 
 -   **Language:** Python 3.13
 
@@ -25,7 +23,6 @@ This is a robust backend system designed for corporate financial management. Unl
 * * * * *
 
 ## Role-Based Access Control (RBAC)
------------------------------------
 
 The system enforces a strict permission hierarchy to protect sensitive financial data:
 
@@ -38,7 +35,6 @@ The system enforces a strict permission hierarchy to protect sensitive financial
 
 * * * * *
 ## Key Features
---------------
 
 ### **1\. Advanced Dashboard Analytics**
 
@@ -65,7 +61,6 @@ The Dashboard API (`/api/v1/dashboard/`) performs real-time aggregations:
 * * * * *
 
 🛠️ Setup and Installation
---------------------------
 
 ### **1\. Local Environment**
 
@@ -113,7 +108,6 @@ The API documentation will be available at: `http://localhost:8000/docs`
 * * * * *
 
 📝 Design Assumptions
----------------------
 
 -   **Audit Trail:** Every record stores the `user_id` of the Admin who created it, ensuring accountability even in a shared data environment.
 
