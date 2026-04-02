@@ -14,19 +14,29 @@ def get_dashboard_data(session: Session) -> DashboardSummary:
     recent_activity = session.exec(select(FinancialRecord).order_by(desc(FinancialRecord.date)).limit(5)).all()
 
     trend_query = text("""
-        SELECT TO_CHAR(date, 'YYYY-MM') as month, type, SUM(amount) as total 
+        SELECT 
+            TO_CHAR(date, 'YYYY-MM') as month_alias, 
+            type, 
+            SUM(amount) as total 
         FROM financialrecord 
-        GROUP BY month, type 
-        ORDER BY month ASC
+        GROUP BY TO_CHAR(date, 'YYYY-MM'), type 
+        ORDER BY month_alias ASC
     """)
-    trend_results = session.execute(trend_query).all()
     
+    try:
+        trend_results = session.execute(trend_query).all()
+    except Exception as e:
+        print(f"Database Query Error: {e}")
+        trend_results = []
+
     temp_trends = {}
     for month, r_type, total in trend_results:
         if month not in temp_trends:
-            temp_trends[month] = {"month": month, "income": 0, "expense": 0}
-        if r_type in ['income', 'expense']:
-            temp_trends[month][r_type] = total
+            temp_trends[month] = {"month": month, "income": 0.0, "expense": 0.0}
+        if r_type == 'income':
+            temp_trends[month]['income'] = float(total or 0)
+        elif r_type == 'expense':
+            temp_trends[month]['expense'] = float(total or 0)
     
     return DashboardSummary(
         total_income=income,
