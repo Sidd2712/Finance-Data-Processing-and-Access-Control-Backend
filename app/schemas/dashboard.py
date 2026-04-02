@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from typing import List, Dict, Any
 from app.schemas.record import RecordRead
 from app.schemas.dashboard import CategoryTotal, MonthlyTrend
@@ -23,6 +23,7 @@ class DashboardSummary(BaseModel):
     monthly_trends: List[MonthlyTrend]
     recent_activity: List[RecordRead]
 
+    @computed_field
     @property
     def status(self) -> str:
         if self.net_balance > 0:
@@ -30,3 +31,6 @@ class DashboardSummary(BaseModel):
         elif self.net_balance < 0:
             return "deficit"
         return "balanced"
+
+    class Config:
+        from_attributes = True
