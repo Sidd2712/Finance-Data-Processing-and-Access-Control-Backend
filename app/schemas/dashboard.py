@@ -15,7 +15,14 @@ class DashboardSummary(BaseModel):
     total_income: float
     total_expenses: float
     net_balance: float
-    category_totals: List[CategoryTotal]
-    monthly_trends: List[MonthlyTrend]
-    recent_activity: List[RecordRead]
+    category_totals: list[dict]
+    monthly_trends: list[dict]
+    recent_activity: list[RecordRead]
 
+    @property
+    def status(self) -> str:
+        if self.net_balance > 0:
+            return "surplus"
+        elif self.net_balance < 0:
+            return "deficit"
+        return "balanced"
