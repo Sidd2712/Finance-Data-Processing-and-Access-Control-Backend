@@ -14,21 +14,20 @@ router = APIRouter()
 @router.get("/", response_model=list[RecordRead])
 def read_records(
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(RoleChecker([UserRole.ADMIN, UserRole.ANALYST])),
     category: Optional[str] = None,
-    record_type: Optional[str] = None, # 'income' or 'expense'
+    record_type: Optional[str] = Query(None, alias="type"),
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     offset: int = 0,
     limit: int = 100
 ):
-    statement = select(FinancialRecord).where(FinancialRecord.user_id == current_user.id)
+    statement = select(FinancialRecord)
     
-    # Apply Dynamic Filters
-    if category:
-        statement = statement.where(FinancialRecord.category == category)
     if record_type:
         statement = statement.where(FinancialRecord.type == record_type)
+    if category:
+        statement = statement.where(FinancialRecord.category == category)
     if start_date:
         statement = statement.where(FinancialRecord.date >= start_date)
     if end_date:
