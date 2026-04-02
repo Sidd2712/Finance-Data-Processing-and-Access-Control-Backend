@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from typing import List
+from uuid import UUID
 from app.database import get_session
 from app.models.user import User, UserRole
 from app.crud.user import create_user, get_users
-from app.schemas.user import UserCreate, UserRead
+from app.schemas.user import UserCreate, UserRead, UserUpdate
 from app.api.permissions import get_session, get_current_user, RoleChecker
 
 router = APIRouter()
@@ -23,3 +24,23 @@ def read_users(
     current_user: User = Depends(RoleChecker([UserRole.ADMIN]))
 ):
     return get_users(session)
+
+@router.patch("/{user_id}", response_model=UserRead)
+def update_user_status(
+    user_id: UUID,
+    user_in: UserUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(RoleChecker([UserRole.ADMIN]))
+):
+    db_user = session.get(User, user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    update_data = user_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_user, key, value)
+    
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    return db_user

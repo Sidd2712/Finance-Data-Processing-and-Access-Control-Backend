@@ -1,6 +1,8 @@
 from uuid import UUID 
 from pydantic import BaseModel, EmailStr
 from app.models.user import UserRole
+from sqlmodel import SQLModel
+from typing import Optional
 
 class UserBase(BaseModel):
     username: str
@@ -16,3 +18,7 @@ class UserRead(UserBase):
     
     class Config:
         from_attributes = True
+
+class UserUpdate(SQLModel):
+    is_active: Optional[bool] = None
+    role: Optional[UserRole] = None

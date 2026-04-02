@@ -21,7 +21,11 @@ def login(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive. Please contact an Admin."
+        )    
 
     return {
         "access_token": security.create_access_token(user.id),
